@@ -4,23 +4,50 @@ Cross-platform Java Version Manager. Install and switch between multiple JDK ver
 
 ## Installation
 
-Build from source:
+### Download Binary (Recommended)
+
+Download the latest release for your platform from [GitHub Releases](https://github.com/maskedsyntax/jvman/releases).
+
+Linux/macOS:
+```bash
+# Download and extract (replace VERSION and PLATFORM)
+curl -LO https://github.com/maskedsyntax/jvman/releases/download/VERSION/jvman_VERSION_PLATFORM.tar.gz
+tar -xzf jvman_VERSION_PLATFORM.tar.gz
+sudo mv jvman /usr/local/bin/
+```
+
+Windows: Download the `.zip` file and add `jvman.exe` to your PATH.
+
+### Using Go
+
+If you have Go installed:
+```bash
+go install github.com/maskedsyntax/jvman/cmd/jvman@latest
+```
+
+### Build from Source
 
 ```bash
+git clone https://github.com/maskedsyntax/jvman.git
+cd jvman
 go build -o jvman ./cmd/jvman
 ```
 
-Initialize jvman and set up shims:
+### Setup
+
+After installation, initialize jvman:
 
 ```bash
-./jvman init
+jvman init
 ```
 
-Add the bin directory to your PATH (the init command will show the exact path):
+Add the bin directory to your PATH (the init command shows the exact path):
 
 ```bash
 export PATH="$HOME/.jvman/bin:$PATH"
 ```
+
+Add this line to your shell profile (`~/.bashrc`, `~/.zshrc`, etc.) to make it permanent.
 
 ## Usage
 
