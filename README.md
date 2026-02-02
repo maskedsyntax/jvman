@@ -56,12 +56,24 @@ Set a project-local version (creates a `.jvman` file):
 jvman use 17
 ```
 
+### Run with a specific version
+
+Use `exec` to run a command with a specific Java version without changing your global or local settings:
+
+```bash
+jvman exec 21 java -version
+jvman exec corretto-17 javac Main.java
+jvman exec zulu-11 mvn clean install
+```
+
+This sets `JAVA_HOME` and prepends the JDK's bin directory to `PATH` for the executed command.
+
 ### Other commands
 
 ```bash
-jvman which    # Show the currently active Java and how it was resolved
+jvman which      # Show the currently active Java and how it was resolved
 jvman remove 21  # Uninstall a version
-jvman version  # Show jvman version
+jvman version    # Show jvman version
 ```
 
 ## Version Resolution

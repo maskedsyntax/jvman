@@ -3,8 +3,10 @@ package main
 import (
 	"fmt"
 	"os"
+	"os/exec"
 	"path/filepath"
 	"strings"
+	"syscall"
 
 	"github.com/spf13/cobra"
 
@@ -64,6 +66,7 @@ func init() {
 	rootCmd.AddCommand(useCmd)
 	rootCmd.AddCommand(removeCmd)
 	rootCmd.AddCommand(whichCmd)
+	rootCmd.AddCommand(execCmd)
 	rootCmd.AddCommand(versionCmd)
 	rootCmd.AddCommand(initCmd)
 }
@@ -403,6 +406,91 @@ func runInit(cmd *cobra.Command, args []string) error {
 	fmt.Printf("  export PATH=\"%s:$PATH\"\n", binDir)
 
 	return nil
+}
+
+var execCmd = &cobra.Command{
+	Use:                "exec <version> <command> [args...]",
+	Short:              "Run a command with a specific Java version",
+	Long:               "Execute a command using a specific Java version.\n\nExamples:\n  jvman exec 21 java -version\n  jvman exec temurin-17 javac Main.java\n  jvman exec corretto-11 mvn clean install",
+	Args:               cobra.MinimumNArgs(2),
+	DisableFlagParsing: true,
+	RunE:               runExec,
+}
+
+func runExec(cmd *cobra.Command, args []string) error {
+	version := args[0]
+	command := args[1]
+	commandArgs := args[2:]
+
+	cfg, err := config.Load()
+	if err != nil {
+		return fmt.Errorf("failed to load config: %w", err)
+	}
+
+	reg := registry.New(cfg)
+
+	name := resolveInstalledName(reg, version)
+	if name == "" {
+		return fmt.Errorf("Java version %s is not installed. Run 'jvman install %s' first", version, version)
+	}
+
+	jvm, err := reg.Get(name)
+	if err != nil {
+		return fmt.Errorf("failed to get JVM info: %w", err)
+	}
+
+	jvmBinDir := paths.JvmBinDir(jvm.Path)
+
+	env := os.Environ()
+	env = updateEnv(env, "JAVA_HOME", jvm.Path)
+	env = prependPath(env, jvmBinDir)
+
+	var binary string
+	jvmBinary := filepath.Join(jvmBinDir, command)
+	if _, err := os.Stat(jvmBinary); err == nil {
+		binary = jvmBinary
+	} else {
+		found, lookErr := exec.LookPath(command)
+		if lookErr != nil {
+			return fmt.Errorf("command not found: %s", command)
+		}
+		binary = found
+	}
+
+	execErr := syscall.Exec(binary, append([]string{command}, commandArgs...), env)
+	if execErr != nil {
+		execCmd := exec.Command(binary, commandArgs...)
+		execCmd.Env = env
+		execCmd.Stdin = os.Stdin
+		execCmd.Stdout = os.Stdout
+		execCmd.Stderr = os.Stderr
+		return execCmd.Run()
+	}
+
+	return nil
+}
+
+func updateEnv(env []string, key, value string) []string {
+	prefix := key + "="
+	for i, e := range env {
+		if strings.HasPrefix(e, prefix) {
+			env[i] = prefix + value
+			return env
+		}
+	}
+	return append(env, prefix+value)
+}
+
+func prependPath(env []string, dir string) []string {
+	prefix := "PATH="
+	for i, e := range env {
+		if strings.HasPrefix(e, prefix) {
+			currentPath := strings.TrimPrefix(e, prefix)
+			env[i] = prefix + dir + string(os.PathListSeparator) + currentPath
+			return env
+		}
+	}
+	return append(env, prefix+dir)
 }
 
 func resolveInstalledName(reg *registry.Registry, version string) string {
