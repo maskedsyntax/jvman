@@ -30,3 +30,9 @@ go.work.sum
 # Editor/IDE
 # .idea/
 # .vscode/
+
+# Built binary (at root only)
+/jvman
+
+# Local test files
+.jvman
