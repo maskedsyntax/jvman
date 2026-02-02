@@ -12,15 +12,30 @@ import (
 	"github.com/maskedsyntax/jvman/internal/downloader"
 	"github.com/maskedsyntax/jvman/internal/extractor"
 	"github.com/maskedsyntax/jvman/internal/paths"
+	"github.com/maskedsyntax/jvman/internal/provider"
+	"github.com/maskedsyntax/jvman/internal/provider/corretto"
+	"github.com/maskedsyntax/jvman/internal/provider/temurin"
+	"github.com/maskedsyntax/jvman/internal/provider/zulu"
 	"github.com/maskedsyntax/jvman/internal/registry"
 	"github.com/maskedsyntax/jvman/internal/resolver"
 	"github.com/maskedsyntax/jvman/internal/shim"
-	"github.com/maskedsyntax/jvman/internal/provider/temurin"
 )
 
 var (
 	version = "dev"
 )
+
+var vendors = map[string]func() provider.Vendor{
+	"temurin":  func() provider.Vendor { return temurin.New() },
+	"corretto": func() provider.Vendor { return corretto.New() },
+	"zulu":     func() provider.Vendor { return zulu.New() },
+}
+
+var versionNameFuncs = map[string]func(string) string{
+	"temurin":  temurin.VersionName,
+	"corretto": corretto.VersionName,
+	"zulu":     zulu.VersionName,
+}
 
 func main() {
 	if err := rootCmd.Execute(); err != nil {
@@ -34,7 +49,15 @@ var rootCmd = &cobra.Command{
 	Long:  "jvman is a tool for installing and switching between multiple Java versions.",
 }
 
+var (
+	installVendor string
+	listVendor    string
+)
+
 func init() {
+	installCmd.Flags().StringVarP(&installVendor, "vendor", "v", "temurin", "JDK vendor (temurin, corretto, zulu)")
+	listCmd.Flags().StringVarP(&listVendor, "vendor", "v", "", "Filter by vendor (temurin, corretto, zulu)")
+
 	rootCmd.AddCommand(installCmd)
 	rootCmd.AddCommand(listCmd)
 	rootCmd.AddCommand(globalCmd)
@@ -48,7 +71,7 @@ func init() {
 var installCmd = &cobra.Command{
 	Use:   "install <version>",
 	Short: "Install a Java version",
-	Long:  "Download and install a specific Java version",
+	Long:  "Download and install a specific Java version.\n\nExamples:\n  jvman install 21\n  jvman install 17 --vendor=corretto\n  jvman install 11 -v zulu",
 	Args:  cobra.ExactArgs(1),
 	RunE:  runInstall,
 }
@@ -56,21 +79,28 @@ var installCmd = &cobra.Command{
 func runInstall(cmd *cobra.Command, args []string) error {
 	version := args[0]
 
+	vendorFactory, ok := vendors[installVendor]
+	if !ok {
+		return fmt.Errorf("unknown vendor: %s (available: temurin, corretto, zulu)", installVendor)
+	}
+
+	versionNameFunc := versionNameFuncs[installVendor]
+
 	cfg, err := config.Load()
 	if err != nil {
 		return fmt.Errorf("failed to load config: %w", err)
 	}
 
 	reg := registry.New(cfg)
-	vendor := temurin.New()
+	vendor := vendorFactory()
 
-	installName := temurin.VersionName(version)
+	installName := versionNameFunc(version)
 	if reg.IsInstalled(installName) {
 		fmt.Printf("Java %s (%s) is already installed\n", version, installName)
 		return nil
 	}
 
-	fmt.Printf("Fetching release info for Java %s...\n", version)
+	fmt.Printf("Fetching release info for Java %s from %s...\n", version, installVendor)
 	release, err := vendor.GetRelease(version)
 	if err != nil {
 		return fmt.Errorf("failed to get release info: %w", err)
@@ -163,16 +193,30 @@ func runList(cmd *cobra.Command, args []string) error {
 		}
 	}
 
-	fmt.Println()
-	fmt.Println("Available versions (Temurin):")
+	vendorsToList := []string{"temurin", "corretto", "zulu"}
+	if listVendor != "" {
+		if _, ok := vendors[listVendor]; !ok {
+			return fmt.Errorf("unknown vendor: %s", listVendor)
+		}
+		vendorsToList = []string{listVendor}
+	}
 
-	vendor := temurin.New()
-	available, err := vendor.ListAvailableVersions()
-	if err != nil {
-		fmt.Printf("  Error fetching: %v\n", err)
-	} else {
+	for _, vendorName := range vendorsToList {
+		fmt.Println()
+		fmt.Printf("Available versions (%s):\n", vendorName)
+
+		vendorFactory := vendors[vendorName]
+		versionNameFunc := versionNameFuncs[vendorName]
+		vendor := vendorFactory()
+
+		available, err := vendor.ListAvailableVersions()
+		if err != nil {
+			fmt.Printf("  Error fetching: %v\n", err)
+			continue
+		}
+
 		for _, rel := range available {
-			installedName := temurin.VersionName(rel.Version)
+			installedName := versionNameFunc(rel.Version)
 			status := ""
 			if reg.IsInstalled(installedName) {
 				status = " [installed]"
@@ -366,9 +410,11 @@ func resolveInstalledName(reg *registry.Registry, version string) string {
 		return version
 	}
 
-	temurinName := temurin.VersionName(version)
-	if reg.IsInstalled(temurinName) {
-		return temurinName
+	for _, versionNameFunc := range versionNameFuncs {
+		name := versionNameFunc(version)
+		if reg.IsInstalled(name) {
+			return name
+		}
 	}
 
 	installed := reg.List()
