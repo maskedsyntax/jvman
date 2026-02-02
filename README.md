@@ -68,6 +68,21 @@ jvman exec zulu-11 mvn clean install
 
 This sets `JAVA_HOME` and prepends the JDK's bin directory to `PATH` for the executed command.
 
+### Interactive mode
+
+Launch the terminal UI for browsing and managing installed versions:
+
+```bash
+jvman tui
+```
+
+In the TUI you can:
+- Browse installed versions
+- Press Enter to set a version as global
+- Press d to remove a version
+- Use / to filter the list
+- Press q to quit
+
 ### Other commands
 
 ```bash

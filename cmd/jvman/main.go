@@ -21,6 +21,7 @@ import (
 	"github.com/maskedsyntax/jvman/internal/registry"
 	"github.com/maskedsyntax/jvman/internal/resolver"
 	"github.com/maskedsyntax/jvman/internal/shim"
+	"github.com/maskedsyntax/jvman/internal/tui"
 )
 
 var (
@@ -67,6 +68,7 @@ func init() {
 	rootCmd.AddCommand(removeCmd)
 	rootCmd.AddCommand(whichCmd)
 	rootCmd.AddCommand(execCmd)
+	rootCmd.AddCommand(tuiCmd)
 	rootCmd.AddCommand(versionCmd)
 	rootCmd.AddCommand(initCmd)
 }
@@ -371,6 +373,14 @@ var versionCmd = &cobra.Command{
 	Short: "Show jvman version",
 	Run: func(cmd *cobra.Command, args []string) {
 		fmt.Printf("jvman version %s\n", version)
+	},
+}
+
+var tuiCmd = &cobra.Command{
+	Use:   "tui",
+	Short: "Interactive terminal UI for managing Java versions",
+	RunE: func(cmd *cobra.Command, args []string) error {
+		return tui.Run()
 	},
 }
 
