@@ -39,7 +39,10 @@ Supported vendors: `temurin` (default), `corretto`, `zulu`
 ```bash
 jvman list                   # Show installed and available versions from all vendors
 jvman list --vendor=temurin  # Filter to a specific vendor
+jvman list --refresh         # Bypass cache and fetch fresh data
 ```
+
+Version lists are cached for 1 hour. Use `--refresh` or `jvman cache clear` to get fresh data.
 
 ### Switch versions
 
@@ -86,9 +89,11 @@ In the TUI you can:
 ### Other commands
 
 ```bash
-jvman which      # Show the currently active Java and how it was resolved
-jvman remove 21  # Uninstall a version
-jvman version    # Show jvman version
+jvman which        # Show the currently active Java and how it was resolved
+jvman remove 21    # Uninstall a version
+jvman cache clear  # Clear the version cache
+jvman upgrade      # Check for jvman updates
+jvman version      # Show jvman version
 ```
 
 ## Version Resolution

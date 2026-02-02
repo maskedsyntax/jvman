@@ -10,6 +10,7 @@ import (
 
 	"github.com/spf13/cobra"
 
+	"github.com/maskedsyntax/jvman/internal/cache"
 	"github.com/maskedsyntax/jvman/internal/config"
 	"github.com/maskedsyntax/jvman/internal/downloader"
 	"github.com/maskedsyntax/jvman/internal/extractor"
@@ -55,11 +56,13 @@ var rootCmd = &cobra.Command{
 var (
 	installVendor string
 	listVendor    string
+	listRefresh   bool
 )
 
 func init() {
 	installCmd.Flags().StringVarP(&installVendor, "vendor", "v", "temurin", "JDK vendor (temurin, corretto, zulu)")
 	listCmd.Flags().StringVarP(&listVendor, "vendor", "v", "", "Filter by vendor (temurin, corretto, zulu)")
+	listCmd.Flags().BoolVarP(&listRefresh, "refresh", "r", false, "Bypass cache and fetch fresh data")
 
 	rootCmd.AddCommand(installCmd)
 	rootCmd.AddCommand(listCmd)
@@ -69,6 +72,8 @@ func init() {
 	rootCmd.AddCommand(whichCmd)
 	rootCmd.AddCommand(execCmd)
 	rootCmd.AddCommand(tuiCmd)
+	rootCmd.AddCommand(cacheCmd)
+	rootCmd.AddCommand(upgradeCmd)
 	rootCmd.AddCommand(versionCmd)
 	rootCmd.AddCommand(initCmd)
 }
@@ -198,6 +203,11 @@ func runList(cmd *cobra.Command, args []string) error {
 		}
 	}
 
+	versionCache, err := cache.New()
+	if err != nil {
+		return fmt.Errorf("failed to initialize cache: %w", err)
+	}
+
 	vendorsToList := []string{"temurin", "corretto", "zulu"}
 	if listVendor != "" {
 		if _, ok := vendors[listVendor]; !ok {
@@ -210,14 +220,27 @@ func runList(cmd *cobra.Command, args []string) error {
 		fmt.Println()
 		fmt.Printf("Available versions (%s):\n", vendorName)
 
-		vendorFactory := vendors[vendorName]
 		versionNameFunc := versionNameFuncs[vendorName]
-		vendor := vendorFactory()
 
-		available, err := vendor.ListAvailableVersions()
-		if err != nil {
-			fmt.Printf("  Error fetching: %v\n", err)
-			continue
+		var available []provider.Release
+		var fromCache bool
+
+		if !listRefresh {
+			available, fromCache = versionCache.GetVersions(vendorName)
+		}
+
+		if !fromCache {
+			vendorFactory := vendors[vendorName]
+			vendor := vendorFactory()
+
+			var fetchErr error
+			available, fetchErr = vendor.ListAvailableVersions()
+			if fetchErr != nil {
+				fmt.Printf("  Error fetching: %v\n", fetchErr)
+				continue
+			}
+
+			versionCache.SetVersions(vendorName, available)
 		}
 
 		for _, rel := range available {
@@ -501,6 +524,54 @@ func prependPath(env []string, dir string) []string {
 		}
 	}
 	return append(env, prefix+dir)
+}
+
+var cacheCmd = &cobra.Command{
+	Use:   "cache",
+	Short: "Manage the version cache",
+}
+
+var cacheClearCmd = &cobra.Command{
+	Use:   "clear",
+	Short: "Clear the version cache",
+	RunE: func(cmd *cobra.Command, args []string) error {
+		c, err := cache.New()
+		if err != nil {
+			return fmt.Errorf("failed to initialize cache: %w", err)
+		}
+		if err := c.Clear(); err != nil {
+			return fmt.Errorf("failed to clear cache: %w", err)
+		}
+		fmt.Println("Cache cleared")
+		return nil
+	},
+}
+
+func init() {
+	cacheCmd.AddCommand(cacheClearCmd)
+}
+
+var upgradeCmd = &cobra.Command{
+	Use:   "upgrade",
+	Short: "Upgrade jvman to the latest version",
+	Long:  "Download and install the latest version of jvman from GitHub releases.",
+	RunE:  runUpgrade,
+}
+
+func runUpgrade(cmd *cobra.Command, args []string) error {
+	fmt.Println("Checking for updates...")
+
+	currentExe, err := os.Executable()
+	if err != nil {
+		return fmt.Errorf("failed to get current executable path: %w", err)
+	}
+
+	fmt.Printf("Current version: %s\n", version)
+	fmt.Printf("To upgrade, download the latest release from:")
+	fmt.Printf("\n  https://github.com/maskedsyntax/jvman/releases\n\n")
+	fmt.Printf("Then replace the binary at: %s\n", currentExe)
+
+	return nil
 }
 
 func resolveInstalledName(reg *registry.Registry, version string) string {
