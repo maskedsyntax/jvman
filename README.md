@@ -30,9 +30,12 @@ export PATH="$HOME/.jvman/bin:$PATH"
 jvman install 21                      # Install Temurin 21 (default vendor)
 jvman install 17 --vendor=corretto    # Install Amazon Corretto 17
 jvman install 11 -v zulu              # Install Azul Zulu 11
+jvman install 21 --arch=aarch64       # Install for specific architecture
 ```
 
 Supported vendors: `temurin` (default), `corretto`, `zulu`
+
+Supported architectures: `x64`, `aarch64`
 
 ### List versions
 
@@ -111,3 +114,15 @@ After installation, `~/.jvman/bin` contains shims for common JDK tools:
 - java, javac, jar, jshell, javadoc, jarsigner, keytool, jlink, jpackage
 
 These shims automatically use the resolved Java version based on your current directory.
+
+## Shell Completion
+
+Generate shell completion scripts:
+
+```bash
+jvman completion bash > /etc/bash_completion.d/jvman   # Bash
+jvman completion zsh > "${fpath[1]}/_jvman"            # Zsh
+jvman completion fish > ~/.config/fish/completions/jvman.fish  # Fish
+```
+
+Run `jvman completion <shell> --help` for detailed instructions.

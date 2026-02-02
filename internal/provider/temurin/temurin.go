@@ -58,6 +58,19 @@ func mapArch() string {
 	}
 }
 
+func normalizeArch(arch string) string {
+	switch arch {
+	case "amd64", "x86_64", "x64":
+		return "x64"
+	case "arm64", "aarch64":
+		return "aarch64"
+	case "386", "x86", "x32":
+		return "x32"
+	default:
+		return arch
+	}
+}
+
 type availableRelease struct {
 	Versions []int `json:"available_releases"`
 	LTS      []int `json:"available_lts_releases"`
@@ -119,9 +132,12 @@ func (t *Temurin) ListAvailableVersions() ([]provider.Release, error) {
 	return releases, nil
 }
 
-func (t *Temurin) GetRelease(version string) (*provider.Release, error) {
+func (t *Temurin) GetRelease(version string, opts *provider.Options) (*provider.Release, error) {
 	os := mapOS()
 	arch := mapArch()
+	if opts != nil && opts.Arch != "" {
+		arch = normalizeArch(opts.Arch)
+	}
 
 	url := fmt.Sprintf(
 		"%s/assets/latest/%s/hotspot?architecture=%s&image_type=jdk&os=%s&vendor=eclipse",

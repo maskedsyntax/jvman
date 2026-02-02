@@ -57,6 +57,17 @@ func mapArch() string {
 	}
 }
 
+func normalizeArch(arch string) string {
+	switch arch {
+	case "amd64", "x86_64", "x64":
+		return "x64"
+	case "arm64", "aarch64":
+		return "aarch64"
+	default:
+		return arch
+	}
+}
+
 type githubRelease struct {
 	TagName string `json:"tag_name"`
 }
@@ -72,9 +83,12 @@ func (c *Corretto) ListAvailableVersions() ([]provider.Release, error) {
 	return releases, nil
 }
 
-func (c *Corretto) GetRelease(version string) (*provider.Release, error) {
+func (c *Corretto) GetRelease(version string, opts *provider.Options) (*provider.Release, error) {
 	os := mapOS()
 	arch := mapArch()
+	if opts != nil && opts.Arch != "" {
+		arch = normalizeArch(opts.Arch)
+	}
 
 	repoName := fmt.Sprintf("corretto-%s", version)
 	apiURL := fmt.Sprintf("%s/%s/releases/latest", githubAPI, repoName)

@@ -12,8 +12,12 @@ type Release struct {
 	Arch         string
 }
 
+type Options struct {
+	Arch string
+}
+
 type Vendor interface {
 	Name() string
 	ListAvailableVersions() ([]Release, error)
-	GetRelease(version string) (*Release, error)
+	GetRelease(version string, opts *Options) (*Release, error)
 }

@@ -55,12 +55,14 @@ var rootCmd = &cobra.Command{
 
 var (
 	installVendor string
+	installArch   string
 	listVendor    string
 	listRefresh   bool
 )
 
 func init() {
 	installCmd.Flags().StringVarP(&installVendor, "vendor", "v", "temurin", "JDK vendor (temurin, corretto, zulu)")
+	installCmd.Flags().StringVarP(&installArch, "arch", "a", "", "Architecture (x64, aarch64)")
 	listCmd.Flags().StringVarP(&listVendor, "vendor", "v", "", "Filter by vendor (temurin, corretto, zulu)")
 	listCmd.Flags().BoolVarP(&listRefresh, "refresh", "r", false, "Bypass cache and fetch fresh data")
 
@@ -81,7 +83,7 @@ func init() {
 var installCmd = &cobra.Command{
 	Use:   "install <version>",
 	Short: "Install a Java version",
-	Long:  "Download and install a specific Java version.\n\nExamples:\n  jvman install 21\n  jvman install 17 --vendor=corretto\n  jvman install 11 -v zulu",
+	Long:  "Download and install a specific Java version.\n\nExamples:\n  jvman install 21\n  jvman install 17 --vendor=corretto\n  jvman install 11 -v zulu\n  jvman install 21 --arch=aarch64",
 	Args:  cobra.ExactArgs(1),
 	RunE:  runInstall,
 }
@@ -111,7 +113,8 @@ func runInstall(cmd *cobra.Command, args []string) error {
 	}
 
 	fmt.Printf("Fetching release info for Java %s from %s...\n", version, installVendor)
-	release, err := vendor.GetRelease(version)
+	opts := &provider.Options{Arch: installArch}
+	release, err := vendor.GetRelease(version, opts)
 	if err != nil {
 		return fmt.Errorf("failed to get release info: %w", err)
 	}

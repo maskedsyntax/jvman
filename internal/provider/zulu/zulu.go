@@ -58,6 +58,19 @@ func mapArch() string {
 	}
 }
 
+func normalizeArch(arch string) string {
+	switch arch {
+	case "amd64", "x86_64", "x64":
+		return "x64"
+	case "arm64", "aarch64":
+		return "aarch64"
+	case "386", "x86", "i686":
+		return "i686"
+	default:
+		return arch
+	}
+}
+
 func archiveType() string {
 	if runtime.GOOS == "windows" {
 		return "zip"
@@ -126,10 +139,15 @@ func (z *Zulu) ListAvailableVersions() ([]provider.Release, error) {
 	return releases, nil
 }
 
-func (z *Zulu) GetRelease(version string) (*provider.Release, error) {
+func (z *Zulu) GetRelease(version string, opts *provider.Options) (*provider.Release, error) {
+	arch := mapArch()
+	if opts != nil && opts.Arch != "" {
+		arch = normalizeArch(opts.Arch)
+	}
+
 	params := url.Values{}
 	params.Set("os", mapOS())
-	params.Set("arch", mapArch())
+	params.Set("arch", arch)
 	params.Set("archive_type", archiveType())
 	params.Set("java_package_type", "jdk")
 	params.Set("javafx_bundled", "false")
@@ -180,7 +198,7 @@ func (z *Zulu) GetRelease(version string) (*provider.Release, error) {
 		ChecksumType: "sha256",
 		FileName:     pkg.Name,
 		OS:           mapOS(),
-		Arch:         mapArch(),
+		Arch:         arch,
 	}, nil
 }
 
