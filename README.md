@@ -25,6 +25,11 @@ If you have Go installed:
 go install github.com/maskedsyntax/jvman/cmd/jvman@latest
 ```
 
+**Note:** This installs the binary to `$HOME/go/bin`. Make sure this directory is in your PATH:
+```bash
+export PATH="$HOME/go/bin:$PATH"
+```
+
 ### Build from Source
 
 ```bash
