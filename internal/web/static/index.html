@@ -1,0 +1,236 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>jvman — Cross-platform Java Version Manager</title>
+  <meta name="description" content="Install, switch, and manage multiple JDK versions on Linux, macOS, and Windows. Supports Temurin, Corretto, and Zulu.">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600&family=Newsreader:ital,opsz,wght@0,6..72,400;0,6..72,600;0,6..72,700;1,6..72,400&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="/static/style.css">
+</head>
+<body>
+  <a class="skip-link" href="#main">Skip to content</a>
+
+  <header class="site-header">
+    <div class="wrap header-inner">
+      <a class="logo" href="/" aria-label="jvman home">
+        <span class="logo-mark" aria-hidden="true">☕</span>
+        <span class="logo-text">jvman</span>
+      </a>
+      <nav class="nav" aria-label="Primary">
+        <a href="#features">Features</a>
+        <a href="#install">Install</a>
+        <a href="#commands">Commands</a>
+        <a class="nav-cta" href="https://github.com/maskedsyntax/jvman" target="_blank" rel="noopener noreferrer">GitHub</a>
+      </nav>
+    </div>
+  </header>
+
+  <main id="main">
+    <section class="hero">
+      <div class="wrap hero-grid">
+        <div class="hero-copy">
+          <p class="eyebrow">Cross-platform Java Version Manager</p>
+          <h1>One command to install, switch, and ship with the right JDK.</h1>
+          <p class="lead">
+            jvman manages Temurin, Corretto, and Zulu builds across Linux, macOS, and Windows.
+            Set a global default, pin versions per project, or run a single command with any JDK.
+          </p>
+          <div class="hero-actions">
+            <a class="btn btn-primary" href="#install">Get started</a>
+            <a class="btn btn-ghost" href="https://github.com/maskedsyntax/jvman/releases" target="_blank" rel="noopener noreferrer">Download release</a>
+          </div>
+          <ul class="hero-stats" aria-label="Highlights">
+            <li><strong>3</strong> vendors</li>
+            <li><strong>3</strong> platforms</li>
+            <li><strong>0</strong> shell hacks</li>
+          </ul>
+        </div>
+
+        <div class="terminal" aria-label="Example jvman session">
+          <div class="terminal-chrome">
+            <span class="dot dot-red"></span>
+            <span class="dot dot-yellow"></span>
+            <span class="dot dot-green"></span>
+            <span class="terminal-title">~/projects/my-app</span>
+          </div>
+          <div class="terminal-body">
+            <div class="line"><span class="prompt">$</span> jvman install 21</div>
+            <div class="line dim">Installing temurin-21 (aarch64)…</div>
+            <div class="line dim">✓ temurin-21 installed</div>
+            <div class="line"><span class="prompt">$</span> jvman use 17</div>
+            <div class="line dim">✓ .jvman → temurin-17</div>
+            <div class="line"><span class="prompt">$</span> java -version</div>
+            <div class="line accent">openjdk version "17.0.13" 2024-10-15</div>
+            <div class="line"><span class="prompt">$</span> jvman exec 21 mvn test</div>
+            <div class="line dim">Running with temurin-21…</div>
+            <div class="line typing" aria-hidden="true"><span class="cursor"></span></div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section id="features" class="section features">
+      <div class="wrap">
+        <header class="section-head">
+          <p class="eyebrow">Why jvman</p>
+          <h2>Built for teams that juggle more than one Java version.</h2>
+        </header>
+        <div class="feature-grid">
+          <article class="feature-card">
+            <h3>Multi-vendor</h3>
+            <p>Install from Temurin, Amazon Corretto, or Azul Zulu. Pick the build your stack expects.</p>
+          </article>
+          <article class="feature-card">
+            <h3>Per-project switching</h3>
+            <p>A <code>.jvman</code> file in your repo pins the JDK. Walk into any directory and the right version activates.</p>
+          </article>
+          <article class="feature-card">
+            <h3>Shim-based tools</h3>
+            <p><code>java</code>, <code>javac</code>, <code>mvn</code>-adjacent tools resolve through shims — no manual <code>JAVA_HOME</code> exports.</p>
+          </article>
+          <article class="feature-card">
+            <h3>Interactive TUI</h3>
+            <p>Browse installed versions, set globals, and remove old builds from a keyboard-driven terminal UI.</p>
+          </article>
+          <article class="feature-card">
+            <h3>One-off execution</h3>
+            <p><code>jvman exec</code> runs any command with a specific JDK without touching your global or local settings.</p>
+          </article>
+          <article class="feature-card">
+            <h3>Cross-platform</h3>
+            <p>Same workflow on Linux, macOS, and Windows. Single binary, no runtime dependencies.</p>
+          </article>
+        </div>
+      </div>
+    </section>
+
+    <section id="install" class="section install">
+      <div class="wrap">
+        <header class="section-head install-head">
+          <p class="eyebrow">Install</p>
+          <h2>Three steps. Two directories.</h2>
+          <p class="install-lead">The <code>jvman</code> CLI and the Java shims live in different places. Install the CLI first, initialize, then add the shim directory to your PATH.</p>
+        </header>
+
+        <div class="install-panel">
+          <div class="install-phase">
+            <div class="phase-head">
+              <span class="phase-num" aria-hidden="true">1</span>
+              <div>
+                <h3>Install the jvman CLI</h3>
+                <p>Pick a method, then verify with <code>jvman version</code>.</p>
+              </div>
+            </div>
+            <div class="method-grid">
+              <article class="method-card">
+                <h4>Go install</h4>
+                <pre><code>go install github.com/maskedsyntax/jvman/cmd/jvman@latest
+export PATH="$HOME/go/bin:$PATH"
+jvman version</code></pre>
+              </article>
+              <article class="method-card">
+                <h4>Release binary</h4>
+                <pre><code># From GitHub Releases
+tar -xzf jvman_*.tar.gz
+sudo mv jvman /usr/local/bin/
+jvman version</code></pre>
+              </article>
+              <article class="method-card">
+                <h4>From source</h4>
+                <pre><code>git clone https://github.com/maskedsyntax/jvman.git
+cd jvman && go build -o jvman ./cmd/jvman
+./jvman version</code></pre>
+              </article>
+            </div>
+          </div>
+
+          <div class="install-finish">
+            <article class="finish-card">
+              <div class="phase-head">
+                <span class="phase-num" aria-hidden="true">2</span>
+                <div>
+                  <h3>Initialize</h3>
+                  <p>Creates config and Java shims in <code>$HOME/.jvman/bin</code>.</p>
+                </div>
+              </div>
+              <pre class="finish-code"><code>jvman init</code></pre>
+            </article>
+
+            <article class="finish-card">
+              <div class="phase-head">
+                <span class="phase-num" aria-hidden="true">3</span>
+                <div>
+                  <h3>Add Java shims to PATH</h3>
+                  <p>For <code>java</code>, <code>javac</code>, etc. — not the <code>jvman</code> CLI.</p>
+                </div>
+              </div>
+              <pre class="finish-code"><code>export PATH="$HOME/go/bin:$PATH"       # jvman CLI (Go install only)
+export PATH="$HOME/.jvman/bin:$PATH"   # java, javac, jar, …</code></pre>
+            </article>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section id="commands" class="section commands">
+      <div class="wrap">
+        <header class="section-head">
+          <p class="eyebrow">Commands</p>
+          <h2>The essentials.</h2>
+        </header>
+        <div class="command-table" role="table" aria-label="Common jvman commands">
+          <div class="command-row header" role="row">
+            <span role="columnheader">Command</span>
+            <span role="columnheader">What it does</span>
+          </div>
+          <div class="command-row" role="row">
+            <code role="cell">jvman install 21</code>
+            <span role="cell">Install Temurin JDK 21</span>
+          </div>
+          <div class="command-row" role="row">
+            <code role="cell">jvman install 17 -v corretto</code>
+            <span role="cell">Install Amazon Corretto 17</span>
+          </div>
+          <div class="command-row" role="row">
+            <code role="cell">jvman global 21</code>
+            <span role="cell">Set the system-wide default JDK</span>
+          </div>
+          <div class="command-row" role="row">
+            <code role="cell">jvman use 17</code>
+            <span role="cell">Write a project-local <code>.jvman</code> file</span>
+          </div>
+          <div class="command-row" role="row">
+            <code role="cell">jvman list</code>
+            <span role="cell">Show installed and available versions</span>
+          </div>
+          <div class="command-row" role="row">
+            <code role="cell">jvman tui</code>
+            <span role="cell">Open the interactive version manager</span>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section class="section cta">
+      <div class="wrap cta-inner">
+        <h2>Ready to stop fighting <code>JAVA_HOME</code>?</h2>
+        <p>jvman is open source and free to use. Star the repo, file issues, or send a PR.</p>
+        <div class="hero-actions">
+          <a class="btn btn-primary" href="https://github.com/maskedsyntax/jvman" target="_blank" rel="noopener noreferrer">View on GitHub</a>
+          <a class="btn btn-ghost" href="https://github.com/maskedsyntax/jvman/releases" target="_blank" rel="noopener noreferrer">Latest release</a>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <footer class="site-footer">
+    <div class="wrap footer-inner">
+      <p>jvman — Cross-platform Java Version Manager</p>
+      <p>MIT License · <a href="https://github.com/maskedsyntax/jvman">maskedsyntax/jvman</a></p>
+    </div>
+  </footer>
+</body>
+</html>

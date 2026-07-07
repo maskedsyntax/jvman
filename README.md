@@ -4,7 +4,17 @@ Cross-platform Java Version Manager. Install and switch between multiple JDK ver
 
 ## Installation
 
-### Download Binary (Recommended)
+Setup has three steps: install the **jvman CLI**, run **init**, then add **Java shims** to your PATH. These are two different directories — do not skip step 1.
+
+### 1. Install the jvman CLI
+
+Pick one method, then verify the command works:
+
+```bash
+jvman version
+```
+
+#### Download binary (recommended)
 
 Download the latest release for your platform from [GitHub Releases](https://github.com/maskedsyntax/jvman/releases).
 
@@ -14,45 +24,54 @@ Linux/macOS:
 curl -LO https://github.com/maskedsyntax/jvman/releases/download/VERSION/jvman_VERSION_PLATFORM.tar.gz
 tar -xzf jvman_VERSION_PLATFORM.tar.gz
 sudo mv jvman /usr/local/bin/
+jvman version
 ```
 
 Windows: Download the `.zip` file and add `jvman.exe` to your PATH.
 
-### Using Go
+#### Using Go
 
-If you have Go installed:
 ```bash
 go install github.com/maskedsyntax/jvman/cmd/jvman@latest
-```
-
-**Note:** This installs the binary to `$HOME/go/bin`. Make sure this directory is in your PATH:
-```bash
 export PATH="$HOME/go/bin:$PATH"
+jvman version
 ```
 
-### Build from Source
+`go install` puts the binary in `$HOME/go/bin`, not `$HOME/.jvman/bin`. Add `$HOME/go/bin` to your PATH before running any jvman commands.
+
+#### Build from source
 
 ```bash
 git clone https://github.com/maskedsyntax/jvman.git
 cd jvman
 go build -o jvman ./cmd/jvman
+./jvman version
 ```
 
-### Setup
+You can use `./jvman` directly, or move the binary to a directory on your PATH (e.g. `/usr/local/bin`).
 
-After installation, initialize jvman:
+### 2. Initialize
 
 ```bash
 jvman init
 ```
 
-Add the bin directory to your PATH (the init command shows the exact path):
+This creates config and Java tool shims (`java`, `javac`, etc.) in `$HOME/.jvman/bin`.
+
+### 3. Add Java shims to PATH
+
+Add the shim directory so `java`, `javac`, and other JDK tools resolve through jvman:
 
 ```bash
 export PATH="$HOME/.jvman/bin:$PATH"
 ```
 
-Add this line to your shell profile (`~/.bashrc`, `~/.zshrc`, etc.) to make it permanent.
+Add to your shell profile (`~/.bashrc`, `~/.zshrc`, etc.) to make it permanent. If you installed via Go, your profile needs both directories:
+
+```bash
+export PATH="$HOME/go/bin:$PATH"       # jvman CLI
+export PATH="$HOME/.jvman/bin:$PATH"   # java, javac, jar, …
+```
 
 ## Usage
 

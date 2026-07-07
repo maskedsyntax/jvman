@@ -438,7 +438,7 @@ func runInit(cmd *cobra.Command, args []string) error {
 	binDir, _ := paths.BinDir()
 	fmt.Println("jvman initialized successfully!")
 	fmt.Println()
-	fmt.Println("Add the following to your shell profile:")
+	fmt.Println("Add the shim directory to your shell profile (for java, javac, etc.):")
 	fmt.Printf("  export PATH=\"%s:$PATH\"\n", binDir)
 
 	return nil
