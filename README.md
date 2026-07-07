@@ -2,6 +2,8 @@
 
 Cross-platform Java Version Manager. Install and switch between multiple JDK versions on Linux, macOS, and Windows.
 
+**Website:** [jvman.maskedsyntax.com](https://jvman.maskedsyntax.com)
+
 ## Installation
 
 Setup has three steps: install the **jvman CLI**, run **init**, then add **Java shims** to your PATH. These are two different directories — do not skip step 1.
